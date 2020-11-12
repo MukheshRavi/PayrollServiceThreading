@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Text;
+using System.Threading;
 
 namespace PayrollServiceThreading
 {
@@ -68,6 +69,36 @@ Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubn
             stopwatch.Stop();
             Console.WriteLine("Time taken without threads is :{0} ", stopwatch.ElapsedMilliseconds);
             return true;
+        }
+        /// <summary>
+        /// UC 2 Adds the employee with threads.
+        /// </summary>
+        /// <param name="employeeDetails">The employee details.</param>
+        /// <returns></returns>
+        public bool AddMultipleEmployeeWithThreads(List<EmployeeDetails> employeeDetails)
+        {
+            bool result = false;
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+            Thread[] thread = new Thread[employeeDetails.Count];
+            int i = 0;
+            foreach (EmployeeDetails employee in employeeDetails)
+            {
+                // Store all the threads
+                thread[i++] = new Thread(() =>
+                {
+                    result = AddEmployee(employee);
+                });
+            }
+            // Start all the threads
+            for (i = 0; i < thread.Length; i++)
+            {
+                thread[i].Start();
+                thread[i].Join();
+            }
+            stopwatch.Stop();
+            Console.WriteLine("Time taken with threads is :{0} ", stopwatch.ElapsedMilliseconds);
+            return result;
         }
     }
 }
