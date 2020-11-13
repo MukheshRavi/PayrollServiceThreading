@@ -7,6 +7,10 @@ namespace TestPayrollThreading
     [TestClass]
     public class UnitTest1
     {
+        /// <summary>
+        /// uc1
+        /// This method adds Multiple Employees
+        /// </summary>
         [TestMethod]
         public void AddMultipleEmployees()
         {
@@ -44,7 +48,10 @@ namespace TestPayrollThreading
             ///Assert
             Assert.AreEqual(expected, actual);
         }
-
+        /// <summary>
+        /// UC2
+        /// This method adds employees with use of multithreading
+        /// </summary>
         [TestMethod]
         public void AddMultipleEmployeesWithThreading()
         {
@@ -82,6 +89,10 @@ namespace TestPayrollThreading
             ///Assert
             Assert.AreEqual(expected, actual);
         }
+        /// <summary>
+        /// UC3
+        /// This method adds employess with multi threading and synchronization
+        /// </summary>
         [TestMethod]
         public void AddMultipleEmployeesWithThreadingAndSynchronisation()
         {
@@ -115,6 +126,24 @@ namespace TestPayrollThreading
             });
 
             bool actual = payrollRepository.AddEmployeesWithThreadsAndSynchronization(employeelist);
+            bool expected = true;
+            ///Assert
+            Assert.AreEqual(expected, actual);
+        }
+        /// <summary>
+        /// UC4
+        /// This method adds employess with multi threading and synchronization
+        /// </summary>
+        [TestMethod]
+        public void UpdateMultipleEmployeesWithThreadingAndSynchronisation()
+        {
+            //Arrange
+            PayrollRepository payrollRepository = new PayrollRepository();
+            List<string> employeeNames = new List<string>();
+            //Act
+            employeeNames.Add("Mukhesh");
+            employeeNames.Add("Riya");
+            bool actual = payrollRepository.UpdateEmployeesWithThreadsAndSynchronization(employeeNames);
             bool expected = true;
             ///Assert
             Assert.AreEqual(expected, actual);

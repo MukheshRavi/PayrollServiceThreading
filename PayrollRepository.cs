@@ -34,7 +34,7 @@ Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubn
                 command.Parameters.AddWithValue("@BasePay", emp.BasePay);
                 command.Parameters.AddWithValue("@Deductions", emp.Deductions);
                 command.Parameters.AddWithValue("@Incometax", emp.IncomeTax);
-                command.Parameters.AddWithValue("@TaxablePay",emp.TaxablePay);
+                command.Parameters.AddWithValue("@TaxablePay", emp.TaxablePay);
 
 
                 var result = command.ExecuteNonQuery();
@@ -103,12 +103,14 @@ Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubn
             return result;
         }
         /// <summary>
-        /// Adds the employee to payroll data base with thread with synchronization. UC3
+        /// UC3
+        /// Adds the employee to payroll data base with thread with synchronization
         /// </summary>
         /// <param name="employeePayrollDataList">The employee payroll data list.</param>
         public bool AddEmployeesWithThreadsAndSynchronization(List<EmployeeDetails> employeeDetails)
         {
             Stopwatch stopwatch = new Stopwatch();
+            bool result = false;
             stopwatch.Start();
             employeeDetails.ForEach(employeeData =>
             {
@@ -117,7 +119,7 @@ Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubn
                     //mutex waitone method is used
                     //this method does not allow to other threads to go in it, until current thread execution is complete
                     mutex.WaitOne();
-                    AddEmployee(employeeData);
+                    result=AddEmployee(employeeData);
                     Console.WriteLine("Employee added" + employeeData.empName);
                     Console.WriteLine("Current Thread Id" + Thread.CurrentThread.ManagedThreadId);
                     //mut realease mutex is used, which releases current thread and allows new thread to be used.
@@ -129,7 +131,72 @@ Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubn
             });
             stopwatch.Stop();
             Console.WriteLine("Time taken with threads is :{0} ", stopwatch.ElapsedMilliseconds);
-            return true;
+            return result;
+        }
+        /// <summary>
+        /// This method is used to update database by taking employee name
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public bool UpdateEmployee(string name)
+        {
+            SqlConnection connection = new SqlConnection(connectionString);
+            try
+            {
+                using (connection)
+                {
+                    string query = @"update  PayrollDetails set PayrollDetails.Basepay=" + 300000 + "from PayrollDetails p inner join Employee e on e.PayrollId=p.payrollId where e.EmpName" +
+                        "= '" + name + "'";
+                    SqlCommand command = new SqlCommand(query, connection);
+                    connection.Open();
+                    int result = command.ExecuteNonQuery();
+                    if (result != 0)
+                        return true;
+
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+            finally
+            {
+                connection.Close();
+            }
+        }
+        /// <summary>
+        /// UC4
+        /// This method updates employees with multi threading and synchronization
+        /// </summary>
+        /// <param name="employeeNames"></param>
+        /// <returns></returns>
+        public bool UpdateEmployeesWithThreadsAndSynchronization(List<string> employeeNames)
+        {
+            Stopwatch stopwatch = new Stopwatch();
+            bool result=false;
+            stopwatch.Start();
+            
+            employeeNames.ForEach(name =>
+            {
+                Thread thread = new Thread(() =>
+                {
+                    //mutex waitone method is used
+                    //this method does not allow to other threads to go in it, until current thread execution is complete
+                    mutex.WaitOne();
+                    result=UpdateEmployee(name);
+                    Console.WriteLine("Employee with name "+name+" updated");
+                    Console.WriteLine("Current Thread Id" + Thread.CurrentThread.ManagedThreadId);
+                    //mut realease mutex is used, which releases current thread and allows new thread to be used.
+                    mutex.ReleaseMutex();
+                });
+                // Start all the threads
+                thread.Start();
+                thread.Join();
+            });
+            stopwatch.Stop();
+            Console.WriteLine("Time taken with threads is :{0} ", stopwatch.ElapsedMilliseconds);
+            return result;
         }
     }
 }

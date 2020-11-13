@@ -51,6 +51,10 @@ namespace PayrollServiceThreading
             });
 
             bool actual = payrollRepository.AddMultipleEmployeeWithThreads(employeelist);
+            List<string> employeeNames = new List<string>();
+            employeeNames.Add("Mukhesh");
+            employeeNames.Add("Riya");
+            payrollRepository.UpdateEmployeesWithThreadsAndSynchronization(employeeNames);
         }
     }
 }
