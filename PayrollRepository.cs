@@ -12,6 +12,7 @@ namespace PayrollServiceThreading
         public static string connectionString = @"Server=MUKESH\SQLEXPRESS; Initial Catalog =payroll_service;;Integrated Security=True;Connect Timeout=30;
 Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False";
         SqlConnection connection = new SqlConnection(connectionString);
+        Mutex mutex = new Mutex();
         public bool AddEmployee(EmployeeDetails emp)
         {
             // open connection and create transaction
@@ -88,6 +89,7 @@ Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubn
                 thread[i++] = new Thread(() =>
                 {
                     result = AddEmployee(employee);
+                    Console.WriteLine("Current Thread Id" + Thread.CurrentThread.ManagedThreadId);
                 });
             }
             // Start all the threads
@@ -99,6 +101,35 @@ Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubn
             stopwatch.Stop();
             Console.WriteLine("Time taken with threads is :{0} ", stopwatch.ElapsedMilliseconds);
             return result;
+        }
+        /// <summary>
+        /// Adds the employee to payroll data base with thread with synchronization. UC3
+        /// </summary>
+        /// <param name="employeePayrollDataList">The employee payroll data list.</param>
+        public bool AddEmployeesWithThreadsAndSynchronization(List<EmployeeDetails> employeeDetails)
+        {
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+            employeeDetails.ForEach(employeeData =>
+            {
+                Thread thread = new Thread(() =>
+                {
+                    //mutex waitone method is used
+                    //this method does not allow to other threads to go in it, until current thread execution is complete
+                    mutex.WaitOne();
+                    AddEmployee(employeeData);
+                    Console.WriteLine("Employee added" + employeeData.empName);
+                    Console.WriteLine("Current Thread Id" + Thread.CurrentThread.ManagedThreadId);
+                    //mut realease mutex is used, which releases current thread and allows new thread to be used.
+                    mutex.ReleaseMutex();
+                });
+                // Start all the threads
+                thread.Start();
+                thread.Join();
+            });
+            stopwatch.Stop();
+            Console.WriteLine("Time taken with threads is :{0} ", stopwatch.ElapsedMilliseconds);
+            return true;
         }
     }
 }
